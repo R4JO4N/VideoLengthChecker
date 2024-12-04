@@ -1,11 +1,23 @@
-import cv2
+#author: rajoan_d_dinosaur
 import os
+import cv2
 
-def get_total_video_length(folder_path):
+def convert_seconds_to_hms(seconds):
+    """Convert total seconds to hours, minutes, and seconds."""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    remaining_seconds = int(seconds % 60)
+    return hours, minutes, remaining_seconds
+
+def get_video_details(folder_path):
     total_duration = 0
+    video_count = 0
+
+    # Collect all video files
     for root, _, files in os.walk(folder_path):
         for file in files:
             if file.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.wmv')):
+                video_count += 1
                 file_path = os.path.join(root, file)
                 try:
                     cap = cv2.VideoCapture(file_path)
@@ -13,20 +25,32 @@ def get_total_video_length(folder_path):
                     frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
                     duration = frame_count / fps
                     total_duration += duration
-                    print(f"Processed: {file} ({duration:.2f} seconds)")
                     cap.release()
                 except Exception as e:
                     print(f"Could not process {file}: {e}")
 
     # Convert total duration to hours, minutes, and seconds
-    hours = int(total_duration // 3600)
-    minutes = int((total_duration % 3600) // 60)
-    seconds = int(total_duration % 60)
+    hours, minutes, seconds = convert_seconds_to_hms(total_duration)
 
-    print("\nTotal video length:")
-    print(f"{hours} hours, {minutes} minutes, {seconds} seconds")
-    return total_duration
+    # Calculate watch times at different speeds
+    time_1_25x = total_duration / 1.25
+    time_1_50x = total_duration / 1.50
+    time_2x = total_duration / 2.00
+
+    # Convert times at different speeds to hours, minutes, and seconds
+    h1_25x, m1_25x, s1_25x = convert_seconds_to_hms(time_1_25x)
+    h1_50x, m1_50x, s1_50x = convert_seconds_to_hms(time_1_50x)
+    h2x, m2x, s2x = convert_seconds_to_hms(time_2x)
+
+    # Print the results
+    print(f"Total videos found: {video_count}")
+    print(f"Total video length: {hours} hours, {minutes} minutes, {seconds} seconds")
+    print(f"Total watch time at 1.25x speed: {h1_25x} hours, {m1_25x} minutes, {s1_25x} seconds")
+    print(f"Total watch time at 1.50x speed: {h1_50x} hours, {m1_50x} minutes, {s1_50x} seconds")
+    print(f"Total watch time at 2.00x speed: {h2x} hours, {m2x} minutes, {s2x} seconds")
+
+    return video_count, total_duration
 
 # Replace with your folder path
 folder_path = input("Enter the folder path: ")
-get_total_video_length(folder_path)
+get_video_details(folder_path)
