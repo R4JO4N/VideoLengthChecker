@@ -1,3 +1,4 @@
+#author: rajoan_d_dinosaur
 import os
 import cv2
 
